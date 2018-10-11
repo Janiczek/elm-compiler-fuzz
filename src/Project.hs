@@ -8,10 +8,11 @@ import Helpers
 import CodeChunk
 import Templates
 import Data.Maybe
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 data Project = Project
-  { moduleName :: String
-  , code :: Code
+  { modules :: Map String Code
   , mutations :: [Mutation]
   } deriving (Eq, Generic, Show, Ord)
 
@@ -34,9 +35,14 @@ codeString (Code string) = string
 
 instance Arbitrary Project where
   arbitrary = do
-    code' <- arbitrary
-    let moduleName' = findModuleName code'
-    return (Project {moduleName = moduleName', code = code', mutations = []})
+    codes <- arbitrary :: Gen [Code]
+    let pairs = codes |> map (\code' -> (findModuleName code', code'))
+    return
+      (Project
+        { modules = Map.fromList pairs
+        , mutations = []
+        }
+      )
     where
       findModuleName :: Code -> String
       findModuleName (Code string) =
@@ -63,6 +69,8 @@ instance Arbitrary Mutation where
         ]
 
 instance Arbitrary Code where
+  -- TODO sometimes it loops a bit too much.
+  -- Let's thread an expansion count through and stop all expansions after a limit?
   arbitrary = do
     expand startingTemplate
     where
@@ -82,6 +90,7 @@ instance Arbitrary Code where
           T _ -> return [chunk]
           UI -> expandFromStrings uppercaseTemplates
           LI -> expandFromStrings lowercaseTemplates
+          OP -> expandFromStrings opTemplates
           D -> expandFromList definitionTemplates
           E -> expandFromList exprTemplates
           TY -> expandFromList typeTemplates
@@ -97,3 +106,4 @@ instance Arbitrary Code where
       expandFromList templates = do
         template <- elements templates
         expandChunks template
+

@@ -8,6 +8,7 @@ import GHC.Generics (Generic)
     T = Text
     UI = Uppercase Identifier ("Abcde", "Hello", "Foo")
     LI = Lowercase Identifier ("abcde", "hello", "foo")
+    OP = Operator
     D = Top-level definition
     E = Expression
     TY = Type
@@ -18,6 +19,7 @@ data CodeChunk
   = T String
   | UI
   | LI
+  | OP
   | D
   | E
   | TY

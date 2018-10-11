@@ -33,6 +33,7 @@ arguments =
     }
     &= summary "elm-compiler-fuzz: Fuzzer for the Elm compiler, trying to provoke caching errors."
 
+
 main' :: Arguments -> Set Project -> IO ()
 main' args crashingProjects = do
   putStr "."
@@ -41,26 +42,32 @@ main' args crashingProjects = do
   result <- runElmMake (elmPath args) dirPath project
   if didCrash result then do
     putStr " CRASH! "
-    handleCrash args crashingProjects project
+    handleCrash args crashingProjects dirPath project
   else do
-    putStr "."
     project' <- mutate project
     result' <- runElmMake (elmPath args) dirPath project'
-    if didCrash result'
-      then handleCrash args crashingProjects project'
-      else main
+    if didCrash result' then
+      handleCrash args crashingProjects dirPath project'
+    else
+      loop args crashingProjects dirPath
 
-handleCrash :: Arguments -> Set Project -> Project -> IO ()
-handleCrash args crashingProjects project = do
+handleCrash :: Arguments -> Set Project -> FilePath -> Project -> IO ()
+handleCrash args crashingProjects dirPath project = do
   putStrLn "Handling crash, how exciting!"
   project' <- shrinkFully project
   if isNewCrash crashingProjects project'
     then do
       report project'
       let crashingProjects' = save project' crashingProjects
-      main' args crashingProjects'
+      loop args crashingProjects' dirPath
     else
-      main' args crashingProjects
+      loop args crashingProjects dirPath
+
+loop :: Arguments -> Set Project -> FilePath -> IO ()
+loop args crashingProjects dirPath = do
+  cleanup dirPath
+  main' args crashingProjects
+
 
 isNewCrash :: Set Project -> Project -> Bool
 isNewCrash crashingProjects project =

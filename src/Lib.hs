@@ -7,6 +7,7 @@ module Lib
   , didCrash
   , mutate
   , report
+  , cleanup
   ) where
 
 import Helpers
@@ -15,11 +16,13 @@ import System.IO.Temp
 import Turtle hiding (FilePath, (</>))
 import Data.List as List
 import Test.QuickCheck
+import Control.Monad
 import System.FilePath.Posix
 import Templates
+import qualified Data.Map as Map
 import Data.Maybe
-import Data.Char
 import qualified Data.Text as T
+import System.Directory
 
 
 data CompilationResult
@@ -38,21 +41,16 @@ data ElmFile
 
 generateElmProject :: IO Project
 generateElmProject = do
-  putStr "."
   generate arbitrary
-
 
 writeElmProject :: Project -> IO FilePath
 writeElmProject project = do
-  putStr "."
   tmpDirPath <- getCanonicalTemporaryDirectory
   dirPath <- createTempDirectory tmpDirPath "elm-compiler-fuzz"
   -- TODO remove dirPath
   write dirPath ElmJson
-  write dirPath (ElmSourceCode
-                  (moduleName project)
-                  (codeString (code project))
-                )
+  let files = modules project |> Map.toList
+  forM files (\(moduleName, code) -> write dirPath (ElmSourceCode moduleName (codeString code)))
   return dirPath
   where
     write :: FilePath -> ElmFile -> IO ()
@@ -61,7 +59,7 @@ writeElmProject project = do
             ElmJson ->
               ("elm.json", elmJsonContents)
             ElmSourceCode moduleName contents ->
-              ( (moduleName |> map toLower) ++ ".elm"
+              ( moduleName ++ ".elm"
               , contents
               )
       let filePath = dirPath </> fileName
@@ -70,7 +68,6 @@ writeElmProject project = do
 
 runElmMake :: Maybe String -> FilePath -> Project -> IO CompilationResult
 runElmMake maybeElmPath dirPath project = do
-  putStr "."
   let elmPath = maybeElmPath |> fromMaybe "elm"
   cd (dirPath |> T.pack |> fromText)
   (exitCode, _, stderr) <- shellStrictWithErr (T.pack (elmPath ++ " make *.elm")) empty
@@ -86,7 +83,7 @@ didCrash result =
 
 mutate :: Project -> IO Project
 mutate project = do
-  putStr " Mutating"
+  putStrLn "Mutating"
   mutation <- undefined :: IO Mutation
   let project' = addMutation mutation project
   return project'
@@ -99,3 +96,7 @@ report :: Project -> IO ()
 report project = do
   putStrLn "Reporting the project"
   undefined
+
+cleanup :: FilePath -> IO ()
+cleanup dirPath =
+  removeDirectoryRecursive dirPath

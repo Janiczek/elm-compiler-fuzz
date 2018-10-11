@@ -36,6 +36,7 @@ library
     , filepath
     , turtle
     , raw-strings-qq
+    , directory
   default-language: Haskell2010
 
 executable elm-compiler-fuzz-exe

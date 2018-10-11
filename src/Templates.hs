@@ -7,6 +7,7 @@ module Templates
   , importTemplates
   , uppercaseTemplates
   , lowercaseTemplates
+  , opTemplates
   , typeTemplates
   , definitionTemplates
   , exprTemplates
@@ -102,6 +103,12 @@ typeTemplates =
   , [T "appendable"]
   , [T "compappend"]
   , [T "number"]
+  , [T "Int"]
+  , [T "Float"]
+  , [T "Bool"]
+  , [T "Char"]
+  , [T "String"]
+  , [T "Never"]
   , [UI, T " ", UI] -- Foo Bar
   , [UI, T " ", LI] -- Foo bar
   , [T "()"]
@@ -111,6 +118,23 @@ typeTemplates =
   -- TODO record types?
   ]
 
+opTemplates :: [String]
+opTemplates =
+  [ "&&"
+  , "||"
+  , "|>"
+  , "<|"
+  , ">>"
+  , "<<"
+  , "+"
+  , "++"
+  , "=="
+  , "<"
+  , "<="
+  , ">"
+  , ">="
+  , "::"
+  ]
 exprTemplates :: [[CodeChunk]]
 exprTemplates =
   [ [T "(\\", LI, T " -> ", E, T ")"] -- (\foo -> [])
@@ -119,34 +143,15 @@ exprTemplates =
   , [T "{}"]
   , [T "{ ", LI, T " = ", E, T " }"] -- { foo = [] }
   , [T "{ ", LI, T " | ", LI, T " = ", E, T " }"] -- { foo | bar = [] }
-  , [E, T " :: ", E] -- [] :: []
   , [T "let ", LI, T " = ", E, T " in ", E] -- let foo = [] in []
-  , [T "Int"]
-  , [T "Float"]
-  , [T "Bool"]
-  , [T "Char"]
-  , [T "String"]
-  , [T "Never"]
   , [LI, T " ", E] -- foo []
   , [T "(", E, T ") ", E] -- ([]) []
   -- TODO as?
-  , [E, T " + ", E] -- [] + []
-  , [E, T " ++ ", E] -- [] ++ []
-  , [E, T " == ", E] -- [] == []
-  , [E, T " < ", E] -- [] < []
-  , [E, T " <= ", E] -- [] <= []
-  , [E, T " > ", E] -- [] > []
-  , [E, T " >= ", E] -- [] >= []
   , [UI] -- Foo
   , [LI] -- foo
   , [UI, T ".", UI] -- Foo.Bar
   , [UI, T ".", LI] -- Foo.bar
-  , [E, T " && ", E] -- [] && []
-  , [E, T " || ", E] -- [] || []
-  , [E, T " |> ", E] -- [] |> []
-  , [E, T " <| ", E] -- [] <| []
-  , [E, T " >> ", E] -- [] >> []
-  , [E, T " << ", E] -- [] << []
+  , [E, OP, E] -- [] <OP> []
   , [T "[ ", E, T " ]"] -- \[[]\]
   , [T "\"\"\"", LI, T "\"\"\""] -- """[]"""
   , [T "\"", LI, T "\""] -- "[]"
