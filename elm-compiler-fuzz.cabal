@@ -1,0 +1,54 @@
+name:           elm-compiler-fuzz
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/Janiczek/elm-compiler-fuzz#readme>
+homepage:       https://github.com/Janiczek/elm-compiler-fuzz#readme
+bug-reports:    https://github.com/Janiczek/elm-compiler-fuzz/issues
+author:         Martin Janiczek
+maintainer:     martin@janiczek.cz
+copyright:      2018 Martin Janiczek
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    flowchart.png
+    flowchart.txt
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/Janiczek/elm-compiler-fuzz
+
+library
+  exposed-modules:
+      Lib
+      Helpers
+      Project
+  other-modules:
+      Paths_elm_compiler_fuzz
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , QuickCheck
+    , temporary
+    , text
+    , filepath
+    , turtle
+    , raw-strings-qq
+  default-language: Haskell2010
+
+executable elm-compiler-fuzz-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_elm_compiler_fuzz
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , elm-compiler-fuzz
+    , containers
+    , cmdargs
+    , QuickCheck
+  default-language: Haskell2010
