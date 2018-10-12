@@ -83,7 +83,6 @@ instance Arbitrary Code where
 
 arbitraryCode :: [(String, String)] -> String -> Gen Code
 arbitraryCode dependencies moduleName = do
-    -- TODO use dependencies
     expand (startingTemplate moduleName)
     where
       expand :: [CodeChunk] -> Gen Code
