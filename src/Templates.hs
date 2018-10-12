@@ -19,8 +19,10 @@ import Text.RawString.QQ
 
 startingTemplate :: String -> [CodeChunk]
 startingTemplate moduleName =
-  [T "module ", T moduleName , T " exposing (..)\n"] -- module Foo exposing (..)
+  [T "module ", T moduleName , T " exposing (..)\n\n"] -- module Foo exposing (..)
+    ++ [T "import Html\n"]
     ++ [IS, T "\n\n"] -- imports according to generated dependencies
+    ++ [T "main = Html.text \"dummy\"\n\n"] -- eliminate "BAD MAIN TYPE" error
     ++ [D] -- definition(s). surprise me!
 
 importTemplate :: String -> [CodeChunk]
@@ -129,6 +131,7 @@ opTemplates =
   , ">="
   , "::"
   ]
+
 exprTemplates :: [[CodeChunk]]
 exprTemplates =
   [ [T "(\\", LI, T " -> ", E, T ")"] -- (\foo -> [])
