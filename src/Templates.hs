@@ -2,7 +2,6 @@
 
 module Templates
   ( startingTemplate
-  , exposingTemplates
   , importTemplate
   , importTemplates
   , uppercaseTemplates
@@ -20,17 +19,9 @@ import Text.RawString.QQ
 
 startingTemplate :: String -> [CodeChunk]
 startingTemplate moduleName =
-  [T "module ", T moduleName , T " exposing (", EX, T ")\n"] -- module Foo exposing (<EXPOSING>)
+  [T "module ", T moduleName , T " exposing (..)\n"] -- module Foo exposing (..)
     ++ [IS, T "\n\n"] -- imports according to generated dependencies
     ++ [D] -- definition(s). surprise me!
-
-exposingTemplates :: [[CodeChunk]]
-exposingTemplates =
-  [ [T ".."]
-  , [LI] -- foo
-  , [UI] -- Foo
-  , [LI, T ", ", UI] -- foo, Bar
-  ]
 
 importTemplate :: String -> [CodeChunk]
 importTemplate dependency =
@@ -40,8 +31,7 @@ importTemplates :: [[CodeChunk]]
 importTemplates =
   [ []
   , [T " as ", UI] -- as Foo
-  , [T " exposing (", EX, T ")"] -- exposing (<EXPOSING>)
-  , [T " as ", UI, T " exposing (", EX, T ")"] -- as Foo exposing (<EXPOSING>)
+  , [T " exposing (..)"] -- exposing (..)
   ]
 
 uppercaseTemplates :: [String]

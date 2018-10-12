@@ -12,7 +12,6 @@ import GHC.Generics (Generic)
     D = Top-level definition
     E = Expression
     TY = Type
-    EX = Exposing
     I = Import
     IS = Imports (all of them, according to generated dependencies)
 -}
@@ -24,7 +23,6 @@ data CodeChunk
   | D
   | E
   | TY
-  | EX
   | I
   | IS
   deriving (Eq, Generic)

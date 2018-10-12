@@ -105,7 +105,6 @@ arbitraryCode dependencies moduleName = do
           D -> expandFromList definitionTemplates
           E -> expandFromList exprTemplates
           TY -> expandFromList typeTemplates
-          EX -> expandFromList exposingTemplates
           I -> expandFromList importTemplates
           IS -> return imports 
 
