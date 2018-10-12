@@ -21,8 +21,8 @@ import Text.RawString.QQ
 startingTemplate :: String -> [CodeChunk]
 startingTemplate moduleName =
   [T "module ", T moduleName , T " exposing (", EX, T ")\n"] -- module Foo exposing (<EXPOSING>)
-    ++ importTemplate
-    ++ [T "\n\n", D] -- surprise me!
+    ++ [IS, T "\n\n"] -- imports according to generated dependencies
+    ++ [D] -- definition(s). surprise me!
 
 exposingTemplates :: [[CodeChunk]]
 exposingTemplates =
@@ -32,9 +32,9 @@ exposingTemplates =
   , [LI, T ", ", UI] -- foo, Bar
   ]
 
-importTemplate :: [CodeChunk]
-importTemplate =
-  [T "\nimport ", UI, I] -- import Foo <IMPORT>
+importTemplate :: String -> [CodeChunk]
+importTemplate dependency =
+  [T "\nimport ", T dependency, I] -- import Foo <IMPORT>
 
 importTemplates :: [[CodeChunk]]
 importTemplates =
@@ -43,8 +43,6 @@ importTemplates =
   , [T " exposing (", EX, T ")"] -- exposing (<EXPOSING>)
   , [T " as ", UI, T " exposing (", EX, T ")"] -- as Foo exposing (<EXPOSING>)
   ]
-  |> map (\template -> [template, template ++ importTemplate]) -- allow more than one import
-  |> concat
 
 uppercaseTemplates :: [String]
 uppercaseTemplates =
@@ -155,8 +153,8 @@ exprTemplates =
   -- TODO as?
   , [UI] -- Foo
   , [LI] -- foo
-  , [UI, T ".", UI] -- Foo.Bar
-  , [UI, T ".", LI] -- Foo.bar
+  --, [UI, T ".", UI] -- Foo.Bar
+  --, [UI, T ".", LI] -- Foo.bar
   , [E, OP, E] -- [] <OP> []
   , [T "[ ", E, T " ]"] -- \[[]\]
   , [T "\"\"\"", LI, T "\"\"\""] -- """[]"""

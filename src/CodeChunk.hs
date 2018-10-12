@@ -14,6 +14,7 @@ import GHC.Generics (Generic)
     TY = Type
     EX = Exposing
     I = Import
+    IS = Imports (all of them, according to generated dependencies)
 -}
 data CodeChunk
   = T String
@@ -25,6 +26,7 @@ data CodeChunk
   | TY
   | EX
   | I
+  | IS
   deriving (Eq, Generic)
 
 onlyText :: CodeChunk -> Maybe String

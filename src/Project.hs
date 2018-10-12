@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
+
 module Project
   ( Project(..)
   , Mutation(..)
@@ -8,20 +9,25 @@ module Project
   , codeString
   , findModuleName
   , arbitraryCode
+  , arbitraryDependencies
   , moduleNameGen
   ) where
 
 import GHC.Generics (Generic)
 import Test.QuickCheck
+import qualified Data.List as List
 import Helpers
 import CodeChunk
 import Templates
+import Data.Graph (Graph)
+import qualified Data.Graph as Graph
 import Data.Maybe
-import Data.Map (Map)
+import Data.Map (Map, (!))
 import qualified Data.Map as Map
 
 data Project = Project
   { modules :: Map String Code
+  , dependencies :: [(String, String)]
   , mutations :: [Mutation]
   } deriving (Eq, Generic, Show, Ord)
 
@@ -44,12 +50,15 @@ codeString (Code string) = string
 
 instance Arbitrary Project where
   arbitrary = do
-    filenames <- listOf moduleNameGen
-    codes <- mapM arbitraryCode filenames 
+    filenames <- listOf (moduleNameGen [])
+    dependencies <- arbitraryDependencies filenames
+
+    codes <- mapM (arbitraryCode dependencies) filenames 
     let pairs = codes |> map (\code' -> (findModuleName code', code'))
     return
       (Project
         { modules = Map.fromList pairs
+        , dependencies = dependencies
         , mutations = []
         }
       )
@@ -58,7 +67,7 @@ instance Arbitrary Project where
     [project {mutations = mutations'} | mutations' <- shrink (mutations project)]
 
 instance Arbitrary Mutation where
-  arbitrary = undefined -- use Lib.arbitraryMutation* instead
+  arbitrary = error "use Lib.arbitraryMutation* instead of arbitrary :: Gen Mutation"
   shrink mutation =
     case mutation of
       RenameFile _ _ -> []
@@ -69,11 +78,12 @@ instance Arbitrary Mutation where
         ]
 
 instance Arbitrary Code where
-  arbitrary = undefined -- use arbitraryCode
+  arbitrary = error "use Project.arbitraryCode instead of arbitrary :: Gen Code"
 
 
-arbitraryCode :: String -> Gen Code
-arbitraryCode moduleName = do
+arbitraryCode :: [(String, String)] -> String -> Gen Code
+arbitraryCode dependencies moduleName = do
+    -- TODO use dependencies
     expand (startingTemplate moduleName)
     where
       expand :: [CodeChunk] -> Gen Code
@@ -98,6 +108,7 @@ arbitraryCode moduleName = do
           TY -> expandFromList typeTemplates
           EX -> expandFromList exposingTemplates
           I -> expandFromList importTemplates
+          IS -> return imports 
 
       expandFromStrings :: [String] -> Gen [CodeChunk]
       expandFromStrings list =
@@ -109,6 +120,19 @@ arbitraryCode moduleName = do
         template <- elements templates
         expandChunks template
 
+      imports :: [CodeChunk]
+      imports = 
+        concatMap importTemplate allowedDependencies
+
+      allowedDependencies :: [String]
+      allowedDependencies =
+        dependencies
+        |> mapMaybe (\(from, to) ->
+          if from == moduleName then
+            Just to
+          else
+            Nothing
+        )
 
 findModuleName :: Code -> String
 findModuleName (Code string) =
@@ -120,8 +144,96 @@ findModuleName (Code string) =
   |> tail
   |> head
 
-moduleNameGen :: Gen String
-moduleNameGen = resize 4 <| do
-  firstChar <- elements ['A'..'Z']
-  rest <- listOf (elements ['a'..'z'])
-  return (firstChar : rest)
+moduleNameGen :: [String] -> Gen String
+moduleNameGen existingModules =
+  gen
+  |> resize 4
+  |> flip suchThat (\name -> not (elem name existingModules))
+  where
+    gen :: Gen String
+    gen = do
+      firstChar <- elements ['A'..'Z']
+      rest <- listOf (elements ['a'..'z'])
+      return (firstChar : rest)
+
+arbitraryDependencies :: [String] -> Gen [(String, String)]
+arbitraryDependencies modules =
+  if length modules < 2 then
+    return []
+  else do
+    tries <- resize 10 arbitrary :: Gen Int
+    aux tries modules []
+      where
+        -- generate dependencies graph without a cycle
+        aux :: Int -> [String] -> [(String, String)] -> Gen [(String, String)]
+        aux triesLeft modules acc =
+          if triesLeft <= 0 then
+            return acc
+          else do
+            let triesLeft' = triesLeft - 1
+
+            pairing@(from,to) <- arbitraryPairing modules
+
+            let acc' = if wouldCreateCycle pairing acc then
+                          acc
+                       else
+                         pairing : acc
+
+            aux triesLeft' modules acc'
+
+        wouldCreateCycle :: (String, String) -> [(String, String)] -> Bool
+        wouldCreateCycle pairing@(from,to) pairings =
+          -- does a path in the opposite direction exist in the current graph?
+          Graph.path graph to' from'
+          where
+            allVertices :: [String]
+            allVertices =
+              pairing : pairings
+              |> concatMap (\(from, to) -> [from,to])
+              |> List.nub
+            
+            maxId :: Map String Int -> Int
+            maxId mapping =
+              Map.elems mapping
+              |> foldl max 0
+
+            -- mapping from String (filenames) to Int (Graph needs them)
+            mapping :: Map String Int
+            mapping =
+              allVertices
+                |> foldl (\acc vertex ->
+                    if Map.member vertex acc then
+                      acc
+                    else
+                      acc |> Map.insert vertex (maxId acc + 1)
+                    ) Map.empty
+
+            bounds = (0, maxId mapping)
+
+            allPairings :: [(String, String)]
+            allPairings =
+              pairing : pairings
+
+            edges :: [(Int, Int)]
+            edges =
+              allPairings
+                |> map (\(from, to) -> (mapping ! from, mapping ! to))
+
+            graph :: Graph
+            graph =
+              Graph.buildG bounds edges
+
+            to' :: Int
+            to' = mapping ! to
+
+            from' :: Int
+            from' = mapping ! from
+
+
+arbitraryPairing :: [String] -> Gen (String, String)
+arbitraryPairing modules = do
+  first <- elements modules
+  let restOfModules = List.delete first modules
+  second <- elements restOfModules
+  return (first, second)
+

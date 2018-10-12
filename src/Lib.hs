@@ -40,7 +40,7 @@ data ElmFile
   deriving (Eq)
 
 generateElmProject :: IO Project
-generateElmProject =
+generateElmProject = do
   generate arbitrary
 
 
@@ -128,8 +128,13 @@ arbitraryMutation project = do
 
       addFile :: Gen Mutation
       addFile = do
-        filename <- moduleNameGen
-        contents <- arbitraryCode filename
+        filename <- moduleNameGen (Map.keys (modules project))
+        dependencies <- arbitraryDependencies (filename : Map.keys (modules project))
+        -- we will ignore deps from other modules to this one
+        -- and only use the ones from this module to others
+        -- TODO check it works
+        undefined
+        contents <- arbitraryCode dependencies filename
         let filename = findModuleName contents
         return (AddFile filename contents)
 
