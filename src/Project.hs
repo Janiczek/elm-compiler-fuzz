@@ -50,7 +50,7 @@ codeString (Code string) = string
 
 instance Arbitrary Project where
   arbitrary = do
-    filenames <- listOf (moduleNameGen [])
+    filenames <- listOf1 (moduleNameGen [])
     dependencies <- arbitraryDependencies filenames
 
     codes <- mapM (arbitraryCode dependencies) filenames 
