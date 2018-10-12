@@ -156,7 +156,7 @@ exprTemplates =
   , [T "1"]
   , [T "True"]
   , [T "1.2"]
-  , [T "\"\\x{002D}\""]
+  , [T "\"\\u{002D}\""]
   ]
 
 elmJsonContents :: String
