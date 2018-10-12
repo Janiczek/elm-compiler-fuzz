@@ -25,10 +25,16 @@ startingTemplate moduleName =
     ++ [T "\n\n", D] -- surprise me!
 
 exposingTemplates :: [[CodeChunk]]
-exposingTemplates = [[T ".."], [LI], [UI], [LI, T ", ", UI]]
+exposingTemplates =
+  [ [T ".."]
+  , [LI] -- foo
+  , [UI] -- Foo
+  , [LI, T ", ", UI] -- foo, Bar
+  ]
 
 importTemplate :: [CodeChunk]
-importTemplate = [T "\nimport ", UI, I] -- import Foo <IMPORT>
+importTemplate =
+  [T "\nimport ", UI, I] -- import Foo <IMPORT>
 
 importTemplates :: [[CodeChunk]]
 importTemplates =
@@ -77,7 +83,7 @@ definitionTemplates =
   [ [LI, T " = ", E] -- foo = <EXPR>
   , [LI, T " ", LI, T " = ", E] -- foo bar = <EXPR>
 
-  , [LI, T " : ", TY] -- foo : <TYPE>
+  --, [LI, T " : ", TY] -- foo : <TYPE>
 
   , [T "type alias ", UI, T " = ", TY] -- type alias Foo = <TYPE>
   , [T "type alias ", UI, T " ", LI, T " = ", TY] -- type alias Foo bar = <TYPE>
