@@ -18,9 +18,9 @@ import CodeChunk
 import Helpers
 import Text.RawString.QQ
 
-startingTemplate :: [CodeChunk]
-startingTemplate =
-  [T "module ", UI, T " exposing (", EX, T ")\n"] -- module Foo exposing (<EXPOSING>)
+startingTemplate :: String -> [CodeChunk]
+startingTemplate moduleName =
+  [T "module ", T moduleName , T " exposing (", EX, T ")\n"] -- module Foo exposing (<EXPOSING>)
     ++ importTemplate
     ++ [T "\n\n", D] -- surprise me!
 

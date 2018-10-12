@@ -1,6 +1,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Project (Project(..), Mutation(..), Code(..), CodeChunk(..), codeString, findModuleName) where
+module Project
+  ( Project(..)
+  , Mutation(..)
+  , Code(..)
+  , CodeChunk(..)
+  , codeString
+  , findModuleName
+  , arbitraryCode
+  , moduleNameGen
+  ) where
 
 import GHC.Generics (Generic)
 import Test.QuickCheck
@@ -35,7 +44,8 @@ codeString (Code string) = string
 
 instance Arbitrary Project where
   arbitrary = do
-    codes <- arbitrary :: Gen [Code]
+    filenames <- listOf moduleNameGen
+    codes <- mapM arbitraryCode filenames 
     let pairs = codes |> map (\code' -> (findModuleName code', code'))
     return
       (Project
@@ -48,7 +58,7 @@ instance Arbitrary Project where
     [project {mutations = mutations'} | mutations' <- shrink (mutations project)]
 
 instance Arbitrary Mutation where
-  arbitrary = undefined -- use the one dependent on the project instead
+  arbitrary = undefined -- use Lib.arbitraryMutation* instead
   shrink mutation =
     case mutation of
       RenameFile _ _ -> []
@@ -59,8 +69,12 @@ instance Arbitrary Mutation where
         ]
 
 instance Arbitrary Code where
-  arbitrary = do
-    expand startingTemplate
+  arbitrary = undefined -- use arbitraryCode
+
+
+arbitraryCode :: String -> Gen Code
+arbitraryCode moduleName = do
+    expand (startingTemplate moduleName)
     where
       expand :: [CodeChunk] -> Gen Code
       expand chunks = do
@@ -96,7 +110,6 @@ instance Arbitrary Code where
         expandChunks template
 
 
-
 findModuleName :: Code -> String
 findModuleName (Code string) =
   -- second word of the first line
@@ -106,3 +119,9 @@ findModuleName (Code string) =
   |> words
   |> tail
   |> head
+
+moduleNameGen :: Gen String
+moduleNameGen = resize 4 <| do
+  firstChar <- elements ['A'..'Z']
+  rest <- listOf (elements ['a'..'z'])
+  return (firstChar : rest)

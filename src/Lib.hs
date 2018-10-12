@@ -40,8 +40,9 @@ data ElmFile
   deriving (Eq)
 
 generateElmProject :: IO Project
-generateElmProject = do
+generateElmProject =
   generate arbitrary
+
 
 write :: FilePath -> ElmFile -> IO ()
 write dirPath elmFile = do
@@ -127,7 +128,8 @@ arbitraryMutation project = do
 
       addFile :: Gen Mutation
       addFile = do
-        contents <- arbitrary
+        filename <- moduleNameGen
+        contents <- arbitraryCode filename
         let filename = findModuleName contents
         return (AddFile filename contents)
 
