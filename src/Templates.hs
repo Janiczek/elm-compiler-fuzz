@@ -110,7 +110,7 @@ typeTemplates =
   , [T "()"]
   , [T "(", TY, T ")"] -- (<TYPE>)
   , [T "(", TY, T ", ", TY, T ")"] -- (<TYPE>, <TYPE>)
-  , [TY, T " -> ", TY] -- <TYPE> -> <TYPE>
+  , [T "(", TY, T " -> ", TY, T ")"] -- <TYPE> -> <TYPE>
   -- TODO record types?
   ]
 
