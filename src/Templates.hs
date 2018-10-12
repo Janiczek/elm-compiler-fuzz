@@ -110,7 +110,7 @@ typeTemplates =
   , [T "()"]
   , [T "(", TY, T ")"] -- (<TYPE>)
   , [T "(", TY, T ", ", TY, T ")"] -- (<TYPE>, <TYPE>)
-  , [T "(", TY, T " -> ", TY, T ")"] -- <TYPE> -> <TYPE>
+  , [T "(", TY, T " -> ", TY, T ")"] -- (<TYPE> -> <TYPE>)
   -- TODO record types?
   ]
 
@@ -148,7 +148,7 @@ exprTemplates =
   , [LI] -- foo
   --, [UI, T ".", UI] -- Foo.Bar
   --, [UI, T ".", LI] -- Foo.bar
-  , [E, OP, E] -- [] <OP> []
+  , [T "(", E, OP, E, T ")"] -- ([] <OP> [])
   , [T "[ ", E, T " ]"] -- \[[]\]
   , [T "\"\"\"", LI, T "\"\"\""] -- """[]"""
   , [T "\"", LI, T "\""] -- "[]"
