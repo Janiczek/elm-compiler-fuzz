@@ -4,10 +4,10 @@ module Lib
   ( generateElmProject
   , writeElmProject
   , runElmMake
-  , didCrash
   , mutate
   , report
   , cleanup
+  , CompilationResult(..)
   ) where
 
 import Helpers
@@ -15,8 +15,10 @@ import Project
 import System.IO.Temp
 import Turtle hiding (FilePath, (</>))
 import Data.List as List
-import Test.QuickCheck
+import Test.QuickCheck hiding (Failure, Success)
 import Control.Monad
+import System.IO (hPutStrLn)
+import qualified System.IO (stderr)
 import System.FilePath.Posix
 import Templates
 import qualified Data.Map as Map
@@ -27,7 +29,8 @@ import System.Directory
 
 data CompilationResult
   = Crash
-  | NoCrash
+  | Failure
+  | Success
   deriving (Eq)
 
 
@@ -71,15 +74,18 @@ runElmMake maybeElmPath dirPath project = do
   let elmPath = maybeElmPath |> fromMaybe "elm"
   cd (dirPath |> T.pack |> fromText)
   (exitCode, _, stderr) <- shellStrictWithErr (T.pack (elmPath ++ " make *.elm")) empty
+  if length (T.unpack stderr) > 0 then
+    hPutStrLn System.IO.stderr (T.unpack stderr)
+  else
+    return ()
   return <|
-    if exitCode == ExitFailure 1 && List.isInfixOf "CallStack" (T.unpack stderr) then
-      Crash
+    if exitCode == ExitFailure 1 then
+      if List.isInfixOf "CallStack" (T.unpack stderr) then
+        Crash
+      else
+        Failure
     else
-      NoCrash
-
-didCrash :: CompilationResult -> Bool
-didCrash result =
-  result == Crash
+      Success
 
 mutate :: FilePath -> Project -> IO Project
 mutate dirPath project = do

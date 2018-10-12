@@ -37,21 +37,32 @@ arguments =
 
 main' :: Arguments -> Set Project -> IO ()
 main' args crashingProjects = do
-  putStr "."
   project <- generateElmProject
   dirPath <- writeElmProject project
   result <- runElmMake (elmPath args) dirPath project
-  if didCrash result then do
-    putStrLn "\nCRASH!"
-    putStrLn (show dirPath)
+  showResult dirPath result
+  if result == Crash then
     handleCrash args crashingProjects dirPath project
   else do
     project' <- mutate dirPath project
     result' <- runElmMake (elmPath args) dirPath project'
-    if didCrash result' then
+    showResult dirPath result'
+    if result' == Crash then
       handleCrash args crashingProjects dirPath project'
     else
       loop args crashingProjects dirPath
+  where
+    showResult :: FilePath -> CompilationResult -> IO ()
+    showResult dirPath result =
+      case result of
+        Crash -> do
+          putStrLn "\nCRASH!"
+          putStrLn (show dirPath)
+        Failure ->
+          putStr "."
+        Success -> do
+          putStrLn "\nSUCCESS!"
+          putStrLn (show dirPath)
 
 handleCrash :: Arguments -> Set Project -> FilePath -> Project -> IO ()
 handleCrash args crashingProjects dirPath project = do
