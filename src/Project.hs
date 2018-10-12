@@ -53,8 +53,10 @@ instance Arbitrary Project where
     filenames <- listOf1 (moduleNameGen [])
     dependencies <- arbitraryDependencies filenames
 
-    codes <- mapM (arbitraryCode dependencies) filenames 
-    let pairs = codes |> map (\code' -> (findModuleName code', code'))
+    pairs <- mapM (\filename -> do
+                code <- arbitraryCode dependencies filename
+                return (filename, code)
+             ) filenames
     return
       (Project
         { modules = Map.fromList pairs
