@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Project (Project(..), Mutation(..), Code(..), CodeChunk(..), codeString) where
+module Project (Project(..), Mutation(..), Code(..), CodeChunk(..), codeString, findModuleName) where
 
 import GHC.Generics (Generic)
 import Test.QuickCheck
@@ -43,22 +43,12 @@ instance Arbitrary Project where
         , mutations = []
         }
       )
-    where
-      findModuleName :: Code -> String
-      findModuleName (Code string) =
-        -- second word of the first line
-        string
-        |> lines
-        |> head
-        |> words
-        |> tail
-        |> head
 
   shrink project =
     [project {mutations = mutations'} | mutations' <- shrink (mutations project)]
 
 instance Arbitrary Mutation where
-  arbitrary = undefined
+  arbitrary = undefined -- use the one dependent on the project instead
   shrink mutation =
     case mutation of
       RenameFile _ _ -> []
@@ -69,8 +59,6 @@ instance Arbitrary Mutation where
         ]
 
 instance Arbitrary Code where
-  -- TODO sometimes it loops a bit too much.
-  -- Let's thread an expansion count through and stop all expansions after a limit?
   arbitrary = do
     expand startingTemplate
     where
@@ -107,3 +95,14 @@ instance Arbitrary Code where
         template <- elements templates
         expandChunks template
 
+
+
+findModuleName :: Code -> String
+findModuleName (Code string) =
+  -- second word of the first line
+  string
+  |> lines
+  |> head
+  |> words
+  |> tail
+  |> head

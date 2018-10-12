@@ -6,12 +6,13 @@ import Lib
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Project
+import System.IO
 import System.Console.CmdArgs.Implicit
 import qualified Test.QuickCheck as QC
 
 main :: IO ()
 main = do
-  putStrLn "The fuzzer is starting"
+  hSetBuffering stdout NoBuffering
   args <- cmdArgs arguments
   main' args Set.empty
 
@@ -41,10 +42,11 @@ main' args crashingProjects = do
   dirPath <- writeElmProject project
   result <- runElmMake (elmPath args) dirPath project
   if didCrash result then do
-    putStr " CRASH! "
+    putStrLn "\nCRASH!"
+    putStrLn (show dirPath)
     handleCrash args crashingProjects dirPath project
   else do
-    project' <- mutate project
+    project' <- mutate dirPath project
     result' <- runElmMake (elmPath args) dirPath project'
     if didCrash result' then
       handleCrash args crashingProjects dirPath project'
@@ -59,9 +61,10 @@ handleCrash args crashingProjects dirPath project = do
     then do
       report project'
       let crashingProjects' = save project' crashingProjects
-      loop args crashingProjects' dirPath
+      main' args crashingProjects'
     else
       loop args crashingProjects dirPath
+
 
 loop :: Arguments -> Set Project -> FilePath -> IO ()
 loop args crashingProjects dirPath = do
