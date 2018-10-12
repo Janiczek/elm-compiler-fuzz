@@ -140,7 +140,7 @@ exprTemplates =
   , [T "{}"]
   , [T "{ ", LI, T " = ", E, T " }"] -- { foo = [] }
   , [T "{ ", LI, T " | ", LI, T " = ", E, T " }"] -- { foo | bar = [] }
-  , [T "let ", LI, T " = ", E, T " in ", E] -- let foo = [] in []
+  , [T "(let ", LI, T " = ", E, T " in ", E, T ")"] -- (let foo = [] in [])
   , [LI, T " ", E] -- foo []
   , [T "(", E, T ") ", E] -- ([]) []
   -- TODO as?
