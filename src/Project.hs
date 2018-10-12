@@ -161,11 +161,11 @@ arbitraryDependencies modules =
     return []
   else do
     tries <- resize 10 arbitrary :: Gen Int
-    aux tries modules []
+    arbitraryDependencies' tries modules []
       where
         -- generate dependencies graph without a cycle
-        aux :: Int -> [String] -> [(String, String)] -> Gen [(String, String)]
-        aux triesLeft modules acc =
+        arbitraryDependencies' :: Int -> [String] -> [(String, String)] -> Gen [(String, String)]
+        arbitraryDependencies' triesLeft modules acc =
           if triesLeft <= 0 then
             return acc
           else do
@@ -178,7 +178,7 @@ arbitraryDependencies modules =
                        else
                          pairing : acc
 
-            aux triesLeft' modules acc'
+            arbitraryDependencies' triesLeft' modules acc'
 
         wouldCreateCycle :: (String, String) -> [(String, String)] -> Bool
         wouldCreateCycle pairing@(from,to) pairings =
