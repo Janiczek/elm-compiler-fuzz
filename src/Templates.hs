@@ -76,7 +76,7 @@ definitionTemplates =
   --, [LI, T " : ", TY] -- foo : <TYPE>
 
   , [T "type alias ", UI, T " = ", TY] -- type alias Foo = <TYPE>
-  , [T "type alias ", UI, T " ", LI, T " = ", TY] -- type alias Foo bar = <TYPE>
+  --, [T "type alias ", UI, T " ", LI, T " = ", TY] -- type alias Foo bar = <TYPE>
 
   , [T "type ", UI, T " = ", UI] -- type Foo = Bar
   , [T "type ", UI, T " = ", UI, T " ", TY] -- type Foo = Bar <TYPE>
