@@ -2,6 +2,13 @@
 
 ![Flowchart](flowchart.png)
 
+## Installation and usage
+
+```
+$ stack build
+$ stack exec -- elm-compiler-fuzz
+```
+
 ## TODO:
 
 - [ ] actually trigger a crash :)
