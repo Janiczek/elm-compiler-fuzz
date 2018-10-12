@@ -42,7 +42,7 @@ library
     , containers
   default-language: Haskell2010
 
-executable elm-compiler-fuzz-exe
+executable elm-compiler-fuzz
   main-is: Main.hs
   other-modules:
       Paths_elm_compiler_fuzz
