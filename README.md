@@ -2,6 +2,11 @@
 
 ![Flowchart](flowchart.png)
 
+## The bugs in question
+
+- https://github.com/elm/compiler/issues/1817
+- https://github.com/elm/compiler/issues/1837
+
 ## Installation and usage
 
 ```
